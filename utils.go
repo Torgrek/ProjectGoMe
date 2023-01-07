@@ -60,7 +60,9 @@ func (cs *configStruct) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
+	cs.singlemode = tmp.Singlemode
 	cs.database = tmp.Database
+	cs.aviliablefiles = tmp.Aviliablefiles
 
 	return nil
 }

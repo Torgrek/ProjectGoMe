@@ -282,21 +282,23 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 	}
 
 	var GuildID string = VoiceStateCurrent.GuildID
-	//var bytesToRead := getUserAviliableSound(GuildID, UserID)
+	bytesToRead := getAviliableSoundFromDB(GuildID, UserID)
+	if bytesToRead != nil {
 
-	vc, err := session.ChannelVoiceJoin(GuildID, ChannelID, false, true)
-	if err != nil {
-		for _, element := range session.VoiceConnections {
-			if element.ChannelID == ChannelID {
-				vc = element
+		vc, err := session.ChannelVoiceJoin(GuildID, ChannelID, false, true)
+		if err != nil {
+			for _, element := range session.VoiceConnections {
+				if element.ChannelID == ChannelID {
+					vc = element
+				}
 			}
+			updateVoiceSession(session, vc, ChannelID, UserID)
+			clearVoiceSession(ChannelID, UserID)
+			return
 		}
 		updateVoiceSession(session, vc, ChannelID, UserID)
-		clearVoiceSession(ChannelID, UserID)
-		return
+		fmt.Println(vc)
 	}
-	updateVoiceSession(session, vc, ChannelID, UserID)
-	fmt.Println(vc)
 
 }
 
@@ -426,4 +428,28 @@ func getBotTokens() []tokensselection {
 
 	return result
 
+}
+
+func getAviliableSoundFromDB(GuildId string, UserID string) []byte {
+
+	dbDriver := globalruntimeparams.driver
+	rows, err := dbDriver.Query("SELECT bytediv, filename FROM catalog WHERE guildid = " + GuildId + " AND userid = " + UserID + " AND active AND bought")
+	checkIfNil(err)
+	var data []SoundFile
+
+	for rows.Next() {
+		currentRow := SoundFile{}
+		err := rows.Scan(&currentRow.bytediv, &currentRow.filename)
+		checkIfNil(err)
+		data = append(data, currentRow)
+	}
+	if data != nil {
+		return data[0].bytediv
+	}
+	return nil
+}
+
+type SoundFile struct {
+	filename string
+	bytediv  []byte
 }

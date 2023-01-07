@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -38,27 +39,6 @@ func initHandlers() {
 	http.HandleFunc("/bootstrap.min.css.map", SendBootstrapCSSMap)
 }
 
-func catalog(w http.ResponseWriter, r *http.Request) {
-
-	dbDriver := globalruntimeparams.driver
-	rows, err := dbDriver.Query("SELECT guildid, userid, id, filename, active, bought FROM catalog")
-	checkIfNil(err)
-	var data []catalogData
-
-	for rows.Next() {
-		currentRow := catalogData{}
-		err := rows.Scan(&currentRow.Id, &currentRow.Guildid, &currentRow.Userid, &currentRow.Filename, &currentRow.Active, &currentRow.Bought)
-		checkIfNil(err)
-		data = append(data, currentRow)
-	}
-
-	tmpl, _ := template.ParseFiles("site/templates/catalog.html")
-
-	if tmpl != nil {
-		tmpl.Execute(w, data)
-	}
-}
-
 func SendScripts(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "site/js/scripts.js")
 }
@@ -80,6 +60,27 @@ func SendBootstrapCSSMap(w http.ResponseWriter, r *http.Request) {
 }
 func SendBootstrapMap(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "site/js/bootstrap/bootstrap.min.js.map")
+}
+
+func catalog(w http.ResponseWriter, r *http.Request) {
+
+	dbDriver := globalruntimeparams.driver
+	rows, err := dbDriver.Query("SELECT guildid, userid, id, filename, active, bought FROM catalog")
+	checkIfNil(err)
+	var data []catalogData
+
+	for rows.Next() {
+		currentRow := catalogData{}
+		err := rows.Scan(&currentRow.Id, &currentRow.Guildid, &currentRow.Userid, &currentRow.Filename, &currentRow.Active, &currentRow.Bought)
+		checkIfNil(err)
+		data = append(data, currentRow)
+	}
+
+	tmpl, _ := template.ParseFiles("site/templates/catalog.html")
+
+	if tmpl != nil {
+		tmpl.Execute(w, data)
+	}
 }
 
 type catalogData struct {
@@ -104,7 +105,7 @@ func uploadfile(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 	fmt.Printf("Uploading File: %+v\n", handler.Filename)
 
-	extension := filepath.Ext(handler.Filename)
+	extension := strings.ReplaceAll(filepath.Ext(handler.Filename), ".", "")
 	isCorrectFileType := false
 
 	for _, item := range globalruntimeparams.aviliablefiles {
