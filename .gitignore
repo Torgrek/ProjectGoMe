@@ -3,3 +3,4 @@ protected/
 _debug_bin.exe
 /site/js/bootstrap*
 /site/css/bootstrap*
+/site/js/fontawesome*

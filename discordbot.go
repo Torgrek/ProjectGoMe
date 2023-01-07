@@ -251,6 +251,12 @@ type guildsSelection struct {
 
 func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.VoiceStateUpdate) {
 
+	if event.BeforeUpdate != nil {
+		if event.BeforeUpdate.Deaf != event.Deaf || event.BeforeUpdate.SelfDeaf != event.SelfDeaf || event.BeforeUpdate.SelfMute != event.SelfMute || event.BeforeUpdate.Mute != event.Mute || event.BeforeUpdate.SelfStream != event.SelfStream || event.BeforeUpdate.SelfVideo != event.SelfVideo || event.BeforeUpdate.Suppress != event.Suppress {
+			return
+		}
+	}
+
 	var VoiceStateCurrent *discordgo.VoiceState = event.VoiceState
 
 	var UserID string = VoiceStateCurrent.UserID
