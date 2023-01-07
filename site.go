@@ -17,7 +17,7 @@ func httpModule() {
 }
 
 func InitRouter() {
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/", http.FileServer(http.Dir("./site/static")))
 	initHandlers()
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
