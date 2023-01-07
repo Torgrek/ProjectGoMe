@@ -300,7 +300,7 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 		}
 		updateVoiceSession(session, vc, ChannelID, UserID)
 
-		tempFile, err := os.CreateTemp("./temp/", "*_"+UserID+"_"+filename)
+		tempFile, err := os.CreateTemp("./temp/", "*_"+ChannelID+"_"+UserID+"_"+filename)
 		nameOfFile := tempFile.Name()
 		if err != nil {
 			clearVoiceSession(ChannelID, UserID)
