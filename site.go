@@ -30,6 +30,12 @@ func InitRouter() {
 func initHandlers() {
 	http.HandleFunc("/funcs/upload", uploadfile)
 	http.HandleFunc("/catalog", catalog)
+	http.HandleFunc("/all.min.js", SendScripts)
+	http.HandleFunc("/bootstrap.min.js", SendBootstrap)
+	http.HandleFunc("/bootstrap.min.js.map", SendBootstrapMap)
+	http.HandleFunc("/scripts.js", SendFontAwesome)
+	http.HandleFunc("/bootstrap.min.css", SendBootstrapCSS)
+	http.HandleFunc("/bootstrap.min.css.map", SendBootstrapCSSMap)
 }
 
 func catalog(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +57,29 @@ func catalog(w http.ResponseWriter, r *http.Request) {
 	if tmpl != nil {
 		tmpl.Execute(w, data)
 	}
+}
+
+func SendScripts(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/js/scripts.js")
+}
+
+func SendBootstrap(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/js/bootstrap/bootstrap.min.js")
+}
+
+func SendFontAwesome(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/js/fontawesome/all.min.js")
+}
+
+func SendBootstrapCSS(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/css/bootstrap/bootstrap.min.css")
+}
+
+func SendBootstrapCSSMap(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/css/bootstrap/bootstrap.min.css.map")
+}
+func SendBootstrapMap(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "site/js/bootstrap/bootstrap.min.js.map")
 }
 
 type catalogData struct {
