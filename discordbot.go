@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
+	"github.com/bwmarrin/dgvoice"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"
 )
@@ -282,7 +284,7 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 	}
 
 	var GuildID string = VoiceStateCurrent.GuildID
-	bytesToRead := getAviliableSoundFromDB(GuildID, UserID)
+	bytesToRead, filename := getAviliableSoundFromDB(GuildID, UserID)
 	if bytesToRead != nil {
 
 		vc, err := session.ChannelVoiceJoin(GuildID, ChannelID, false, true)
@@ -297,7 +299,20 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 			return
 		}
 		updateVoiceSession(session, vc, ChannelID, UserID)
-		fmt.Println(vc)
+
+		//extestion := filepath.Ext(filename)
+		tempFile, err := os.CreateTemp("./temp/", "*"+UserID+"_"+filename)
+		if err != nil {
+			clearVoiceSession(ChannelID, UserID)
+			return
+		}
+
+		tempFile.Write(bytesToRead)
+
+		dgvoice.PlayAudioFile(vc, tempFile.Name(), make(chan bool))
+
+		clearVoiceSession(ChannelID, UserID)
+		os.Remove(tempFile.Name())
 	}
 
 }
@@ -430,7 +445,7 @@ func getBotTokens() []tokensselection {
 
 }
 
-func getAviliableSoundFromDB(GuildId string, UserID string) []byte {
+func getAviliableSoundFromDB(GuildId string, UserID string) ([]byte, string) {
 
 	dbDriver := globalruntimeparams.driver
 	rows, err := dbDriver.Query("SELECT bytediv, filename FROM catalog WHERE guildid = " + GuildId + " AND userid = " + UserID + " AND active AND bought")
@@ -444,9 +459,9 @@ func getAviliableSoundFromDB(GuildId string, UserID string) []byte {
 		data = append(data, currentRow)
 	}
 	if data != nil {
-		return data[0].bytediv
+		return data[0].bytediv, data[0].filename
 	}
-	return nil
+	return nil, ""
 }
 
 type SoundFile struct {
