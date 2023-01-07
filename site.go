@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	_ "github.com/lib/pq"
@@ -42,22 +41,32 @@ func uploadfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	fmt.Printf("Uploaded File: %+v\n", handler.Filename)
-	fmt.Printf("File Size: %+v\n", handler.Size)
-	fmt.Printf("MIME Header: %+v\n", handler.Header)
+	fmt.Printf("Uploading File: %+v\n", handler.Filename)
 
 	extension := filepath.Ext(handler.Filename)
+	isCorrectFileType := false
 
-	tempFile, err := os.CreateTemp("temp", "*"+extension)
-	if err != nil {
-		fmt.Println(err)
+	for _, item := range globalruntimeparams.aviliablefiles {
+		if extension == item {
+			isCorrectFileType = true
+			break
+		}
 	}
-	defer tempFile.Close()
+
+	if !isCorrectFileType {
+		fmt.Printf("Wrong file type: %+v\n", handler.Filename)
+		return
+	}
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println(err)
 	}
-	tempFile.Write(fileBytes)
-	fmt.Fprintf(w, "Successfully Uploaded File\n")
+
+	_, err = globalruntimeparams.driver.Exec("INSERT INTO soundlib (filename, bytediv) values($1::text, $2::bytea)", handler.Filename, fileBytes)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Added " + handler.Filename)
+	}
 }

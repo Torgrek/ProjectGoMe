@@ -26,6 +26,7 @@ func initConfigs() {
 	errjson := configJSON.UnmarshalJSON(rf)
 	checkIfNil(errjson)
 	globalruntimeparams.singlemode = configJSON.singlemode
+	globalruntimeparams.aviliablefiles = configJSON.aviliablefiles
 
 	connStr := "user=" + configJSON.database.user + " password=" + configJSON.database.password + " dbname=" + configJSON.database.dbname + " sslmode=" + configJSON.database.sslmode + ""
 	dbpg, errpg := sql.Open(configJSON.database.driver, connStr)
@@ -34,8 +35,9 @@ func initConfigs() {
 }
 
 type configStruct struct {
-	singlemode bool
-	database   databaseStruct
+	singlemode     bool
+	database       databaseStruct
+	aviliablefiles []string
 }
 
 type databaseStruct struct {
@@ -44,6 +46,23 @@ type databaseStruct struct {
 	password string
 	dbname   string
 	sslmode  string
+}
+
+func (cs *configStruct) UnmarshalJSON(b []byte) error {
+	var tmp struct {
+		Singlemode     bool           `json:"singlemode"`
+		Database       databaseStruct `json:"database"`
+		Aviliablefiles []string       `json:"aviliablefiles"`
+	}
+
+	err := json.Unmarshal(b, &tmp)
+	if err != nil {
+		return err
+	}
+
+	cs.database = tmp.Database
+
+	return nil
 }
 
 func (cs *databaseStruct) UnmarshalJSON(b []byte) error {
@@ -69,22 +88,6 @@ func (cs *databaseStruct) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (cs *configStruct) UnmarshalJSON(b []byte) error {
-	var tmp struct {
-		Singlemode bool           `json:"singlemode"`
-		Database   databaseStruct `json:"database"`
-	}
-
-	err := json.Unmarshal(b, &tmp)
-	if err != nil {
-		return err
-	}
-
-	cs.database = tmp.Database
-
-	return nil
-}
-
 func closeAllConnections() {
 
 	globalruntimeparams.driver.Close()
@@ -97,6 +100,7 @@ func closeAllConnections() {
 }
 
 type runtimeparams struct {
-	singlemode bool
-	driver     *sql.DB
+	singlemode     bool
+	driver         *sql.DB
+	aviliablefiles []string
 }

@@ -11,7 +11,6 @@ import (
 var globalruntimeparams runtimeparams
 var voiceSessionMaster []voicesessions
 
-// TODO Реализовать полную модульность
 func main() {
 
 	initConfigs()
@@ -22,6 +21,6 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	closeAllConnections()
+	defer closeAllConnections()
 
 }
