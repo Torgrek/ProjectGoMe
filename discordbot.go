@@ -254,7 +254,7 @@ type guildsSelection struct {
 func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.VoiceStateUpdate) {
 
 	if event.BeforeUpdate != nil {
-		if event.BeforeUpdate.Deaf != event.Deaf || event.BeforeUpdate.SelfDeaf != event.SelfDeaf || event.BeforeUpdate.SelfMute != event.SelfMute || event.BeforeUpdate.Mute != event.Mute || event.BeforeUpdate.SelfStream != event.SelfStream || event.BeforeUpdate.SelfVideo != event.SelfVideo || event.BeforeUpdate.Suppress != event.Suppress {
+		if event.BeforeUpdate.Deaf != event.Deaf || event.BeforeUpdate.SelfDeaf != event.SelfDeaf || event.BeforeUpdate.SelfMute != event.SelfMute || event.BeforeUpdate.Mute != event.Mute || event.BeforeUpdate.SelfStream != event.SelfStream || event.BeforeUpdate.SelfVideo != event.SelfVideo || (!event.BeforeUpdate.Suppress && event.Suppress) {
 			return
 		}
 	}
@@ -300,8 +300,8 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 		}
 		updateVoiceSession(session, vc, ChannelID, UserID)
 
-		//extestion := filepath.Ext(filename)
-		tempFile, err := os.CreateTemp("./temp/", "*"+UserID+"_"+filename)
+		tempFile, err := os.CreateTemp("./temp/", "*_"+UserID+"_"+filename)
+		nameOfFile := tempFile.Name()
 		if err != nil {
 			clearVoiceSession(ChannelID, UserID)
 			return
@@ -309,10 +309,14 @@ func UpdateVoiceChannelEventToHand(session *discordgo.Session, event *discordgo.
 
 		tempFile.Write(bytesToRead)
 
-		dgvoice.PlayAudioFile(vc, tempFile.Name(), make(chan bool))
+		dgvoice.PlayAudioFile(vc, nameOfFile, make(chan bool))
 
+		err = os.Remove(nameOfFile)
+		if err != nil {
+			fmt.Println(err)
+		}
 		clearVoiceSession(ChannelID, UserID)
-		os.Remove(tempFile.Name())
+
 	}
 
 }
