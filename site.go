@@ -29,18 +29,26 @@ func InitRouter() {
 }
 
 func initHandlers() {
-	http.HandleFunc("/funcs/upload", uploadfile)
 	http.HandleFunc("/catalog", catalog)
-	http.HandleFunc("/all.min.js", SendScripts)
+	initHeaders()
+	initFunctionallyHandlers("/funcs/")
+}
+
+func initFunctionallyHandlers(funcPath string) {
+	http.HandleFunc(funcPath+"upload", uploadfile)
+}
+
+func initHeaders() {
+	http.HandleFunc("/all.min.js", SendFontAwesome)
 	http.HandleFunc("/bootstrap.min.js", SendBootstrap)
 	http.HandleFunc("/bootstrap.min.js.map", SendBootstrapMap)
-	http.HandleFunc("/scripts.js", SendFontAwesome)
+	http.HandleFunc("/scripts.min.js", SendScripts)
 	http.HandleFunc("/bootstrap.min.css", SendBootstrapCSS)
 	http.HandleFunc("/bootstrap.min.css.map", SendBootstrapCSSMap)
 }
 
 func SendScripts(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "site/js/scripts.js")
+	http.ServeFile(w, r, "site/js/scripts.min.js")
 }
 
 func SendBootstrap(w http.ResponseWriter, r *http.Request) {
