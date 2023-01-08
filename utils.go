@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	_ "github.com/lib/pq"
 )
@@ -20,6 +21,8 @@ func checkIfNil(err interface{}) bool {
 func initConfigs() {
 	rf, err := os.ReadFile("./protected/config.json")
 	checkIfNil(err)
+
+	RemoveContents("./temp")
 
 	var configJSON configStruct
 
@@ -105,4 +108,26 @@ type runtimeparams struct {
 	singlemode     bool
 	driver         *sql.DB
 	aviliablefiles []string
+}
+
+// dir - path to the directory where needed to delete all files
+// Source:
+// https://stackoverflow.com/questions/33450980/how-to-remove-all-contents-of-a-directory-using-golang
+func RemoveContents(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
